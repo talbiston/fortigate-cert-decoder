@@ -57,6 +57,12 @@ urllib3>=1.26.0
    pip install -r requirements.txt
    ```
 
+### Pypi
+
+```bash
+pip install fortigate-cert-decoder
+```
+
 ## Usage
 
 ### Basic Syntax
