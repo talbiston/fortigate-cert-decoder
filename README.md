@@ -50,19 +50,55 @@ urllib3>=1.26.0
 
 ## Installation
 
+### From PyPI (Recommended)
+
+Install the package directly from PyPI:
+
+```bash
+pip install fortigate-cert-decoder
+```
+
+After installation, the tool is available as a command-line utility:
+
+```bash
+fgt-cert-decode --help
+```
+
+### From Source
+
 1. Clone or download this repository
-2. Navigate to the certificate directory
+2. Navigate to the project directory
 3. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
+4. Run directly:
+   ```bash
+   python fortigate_cert_decoder/cert_decode.py --help
+   ```
+
+### Development Installation
+
+For local development:
+
+```bash
+git clone https://github.com/talbiston/fortigate-cert-decoder.git
+cd fortigate-cert-decoder
+pip install -e .
+```
 
 ## Usage
 
 ### Basic Syntax
 
+**If installed from PyPI:**
 ```bash
-python cert_decode.py <host> <cert_name> -p <password> [OPTIONS]
+fgt-cert-decode <host> <cert_name> -p <password> [OPTIONS]
+```
+
+**If running from source:**
+```bash
+python fortigate_cert_decoder/cert_decode.py <host> <cert_name> -p <password> [OPTIONS]
 ```
 
 ### Required Arguments
@@ -85,7 +121,7 @@ python cert_decode.py <host> <cert_name> -p <password> [OPTIONS]
 #### Example 1: Retrieve a CA Certificate (Default)
 
 ```bash
-python cert_decode.py 213.200.98.165 Fortinet_SUBCA -p "myPassword123"
+fgt-cert-decode 213.200.98.165 Fortinet_SUBCA -p "myPassword123"
 ```
 
 This will:
@@ -97,7 +133,7 @@ This will:
 #### Example 2: Retrieve a CA Certificate with Custom Username
 
 ```bash
-python cert_decode.py 192.168.1.99 RootCA -u admin -p "SecurePass!23"
+fgt-cert-decode 192.168.1.99 RootCA -u admin -p "SecurePass!23"
 ```
 
 This will:
@@ -108,7 +144,7 @@ This will:
 #### Example 3: Retrieve a Local Certificate
 
 ```bash
-python cert_decode.py 10.0.0.1 WebServerCert -t local -p "myPassword"
+fgt-cert-decode 10.0.0.1 WebServerCert -t local -p "myPassword"
 ```
 
 This will:
@@ -120,7 +156,7 @@ This will:
 #### Example 4: Using Hostname Instead of IP
 
 ```bash
-python cert_decode.py firewall.company.com SSLInspectionCA -p "pass123" -t ca
+fgt-cert-decode firewall.company.com SSLInspectionCA -p "pass123" -t ca
 ```
 
 This will:
@@ -275,7 +311,7 @@ The tool automatically disables SSL warnings for unverified HTTPS connections. T
 
 ```bash
 export FGT_PASSWORD="mySecurePassword"
-python cert_decode.py 192.168.1.1 MyCert -p "$FGT_PASSWORD"
+fgt-cert-decode 192.168.1.1 MyCert -p "$FGT_PASSWORD"
 ```
 
 ### Creating a Wrapper Script
@@ -287,7 +323,7 @@ HOST=${1:-192.168.1.1}
 CERT=${2:-Fortinet_CA2}
 read -sp "Password: " PASSWORD
 echo
-python cert_decode.py "$HOST" "$CERT" -p "$PASSWORD"
+fgt-cert-decode "$HOST" "$CERT" -p "$PASSWORD"
 ```
 
 Usage:
@@ -306,7 +342,7 @@ PASSWORD="myPassword"
 
 for CERT in Fortinet_CA Fortinet_SUBCA CustomCA; do
     echo "Checking $CERT..."
-    python cert_decode.py "$HOST" "$CERT" -p "$PASSWORD" -t ca
+    fgt-cert-decode "$HOST" "$CERT" -p "$PASSWORD" -t ca
     echo "---"
 done
 ```

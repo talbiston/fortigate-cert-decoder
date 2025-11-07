@@ -1,127 +1,180 @@
-# FortiGate Certificate Decoder PyPI Package
+# FortiGate Certificate Decoder PyPI Publishing Guide
 
-This document explains how to build, install, and publish the FortiGate Certificate Decoder package to PyPI.
+This guide explains how to publish the FortiGate Certificate Decoder package to PyPI.
 
-## Package Structure
+## Prerequisites
 
-```
-certificate/
-├── fortigate_cert_decoder/
-│   ├── __init__.py
-│   └── cert_decode.py
-├── setup.py
-├── pyproject.toml
-├── requirements.txt
-├── MANIFEST.in
-├── LICENSE
-└── README.md
-```
+1. **PyPI Account**: Create an account at https://pypi.org/account/register/
+2. **Test PyPI Account** (recommended for testing): Create an account at https://test.pypi.org/account/register/
+3. **GitHub Repository Access**: You need maintainer access to this repository
 
-## Installation from PyPI
+## Publishing Methods
 
-Once published, users can install the package with:
+There are two ways to publish to PyPI:
 
-```bash
-pip install fortigate-cert-decoder
-```
+### Method 1: Automated Publishing via GitHub Actions (Recommended)
 
-## Usage After Installation
+This method uses GitHub's trusted publishing (OIDC) - no API tokens needed!
 
-After installation, the tool is available as a command-line utility:
+#### Setup Steps:
 
-```bash
-# Basic usage
-fgt-cert-decode 192.168.1.1 MyCert -p "password"
+1. **Configure PyPI Trusted Publisher**:
+   - Go to https://pypi.org/manage/account/publishing/
+   - Add a new trusted publisher with these details:
+     - PyPI Project Name: `fortigate-cert-decoder`
+     - Owner: `talbiston`
+     - Repository name: `fortigate-cert-decoder`
+     - Workflow name: `python-publish.yml`
+     - Environment name: `pypi`
 
-# CA certificate (default)
-fgt-cert-decode 10.0.0.1 Fortinet_CA -p "pass123"
+2. **Configure GitHub Environment** (Optional but Recommended):
+   - Go to your repository Settings → Environments
+   - Create a new environment named `pypi`
+   - Add protection rules (e.g., require reviewers, deployment branches)
 
-# Local certificate
-fgt-cert-decode 172.16.0.1 WebCert -t local -p "secret"
+3. **Create a Release**:
+   ```bash
+   # Tag your release
+   git tag v1.0.0
+   git push origin v1.0.0
+   ```
+   
+   - Go to https://github.com/talbiston/fortigate-cert-decoder/releases/new
+   - Select the tag you just created (v1.0.0)
+   - Set the release title (e.g., "v1.0.0 - Initial Release")
+   - Add release notes describing the changes
+   - Click "Publish release"
 
-# With custom username
-fgt-cert-decode 192.168.1.1 SSLCert -u admin -p "admin123"
-```
+4. **Automatic Publishing**:
+   - The GitHub Actions workflow will automatically:
+     - Build the package
+     - Run checks
+     - Publish to PyPI
+   - Monitor progress at: https://github.com/talbiston/fortigate-cert-decoder/actions
 
-## Development Installation
+### Method 2: Manual Publishing
 
-For local development and testing:
+If you prefer to publish manually:
 
-### 1. Install in Editable Mode
-
-```bash
-cd /home/albist50/Code/fortigate-cert-decoder
-pip install -e .
-```
-
-This installs the package in development mode, allowing you to make changes without reinstalling.
-
-### 2. Test the Installation
-
-```bash
-fgt-cert-decode --help
-```
-
-## Building the Package
-
-### 1. Install Build Tools
+#### 1. Install Build Tools
 
 ```bash
 pip install build twine
 ```
 
-### 2. Build Distribution Files
+#### 2. Build the Package
 
 ```bash
-cd /home/albist50/Code/fortigate-cert-decoder
+cd /path/to/fortigate-cert-decoder
 python -m build
 ```
 
 This creates:
-- `dist/fortigate_cert_decoder-1.0.0.tar.gz` (source distribution)
+- `dist/fortigate-cert-decoder-1.0.0.tar.gz` (source distribution)
 - `dist/fortigate_cert_decoder-1.0.0-py3-none-any.whl` (wheel distribution)
 
-### 3. Verify the Build
+#### 3. Verify the Build
 
 ```bash
 twine check dist/*
 ```
 
-## Publishing to PyPI
+You should see:
+```
+Checking dist/fortigate_cert_decoder-1.0.0-py3-none-any.whl: PASSED
+Checking dist/fortigate-cert-decoder-1.0.0.tar.gz: PASSED
+```
 
-### Test PyPI (Recommended First)
+#### 4. Test on Test PyPI (Recommended First)
 
-1. Create account at https://test.pypi.org/account/register/
-
-2. Create API token at https://test.pypi.org/manage/account/token/
-
-3. Upload to Test PyPI:
 ```bash
+# Upload to Test PyPI
 twine upload --repository testpypi dist/*
+
+# Test installation from Test PyPI
+pip install --index-url https://test.pypi.org/simple/ --no-deps fortigate-cert-decoder
 ```
 
-4. Test installation from Test PyPI:
-```bash
-pip install --index-url https://test.pypi.org/simple/ fortigate-cert-decoder
-```
+#### 5. Publish to Production PyPI
 
-### Production PyPI
-
-1. Create account at https://pypi.org/account/register/
-
-2. Create API token at https://pypi.org/manage/account/token/
-
-3. Upload to PyPI:
 ```bash
 twine upload dist/*
 ```
 
-## Configuration
+You'll be prompted for your PyPI username and password/token.
 
-### PyPI Credentials (~/.pypirc)
+## Version Management
 
-Create `~/.pypirc` to store credentials:
+Update the version number in these files before each release:
+- `pyproject.toml`: `version = "1.0.0"`
+- `setup.py`: `version="1.0.0"`
+- `fortigate_cert_decoder/__init__.py`: `__version__ = "1.0.0"`
 
+Use semantic versioning (MAJOR.MINOR.PATCH):
+- MAJOR: Breaking changes
+- MINOR: New features (backward compatible)
+- PATCH: Bug fixes
+
+## Pre-Release Checklist
+
+Before publishing a new version:
+
+- [ ] Update version numbers in all files
+- [ ] Update CHANGELOG or release notes
+- [ ] Ensure all tests pass
+- [ ] Build package: `python -m build`
+- [ ] Check package: `twine check dist/*`
+- [ ] Test on Test PyPI (if using manual method)
+- [ ] Create git tag: `git tag v1.0.0`
+- [ ] Push tag: `git push origin v1.0.0`
+- [ ] Create GitHub release (for automated publishing)
+
+## After Publishing
+
+1. **Verify Installation**:
+   ```bash
+   pip install fortigate-cert-decoder
+   fgt-cert-decode --help
+   ```
+
+2. **Check PyPI Page**:
+   Visit https://pypi.org/project/fortigate-cert-decoder/
+
+3. **Update Documentation**:
+   Ensure README.md has correct installation instructions
+
+## Package Configuration
+
+### pyproject.toml
+
+The package uses modern `pyproject.toml` configuration:
+- Build system: setuptools with wheel
+- License: MIT (modern SPDX format)
+- Entry point: `fgt-cert-decode` command
+- Dependencies: requests, cryptography, rich, urllib3
+
+### GitHub URLs
+
+All URLs point to: `https://github.com/talbiston/fortigate-cert-decoder`
+
+## Troubleshooting
+
+### Build Errors
+
+Clean build artifacts and try again:
+```bash
+rm -rf build/ dist/ *.egg-info
+python -m build
+```
+
+### Twine Authentication Errors
+
+For manual publishing, create an API token:
+1. Go to https://pypi.org/manage/account/token/
+2. Create a new API token
+3. Use `__token__` as username and the token as password
+
+Or configure `~/.pypirc`:
 ```ini
 [distutils]
 index-servers =
@@ -130,144 +183,68 @@ index-servers =
 
 [pypi]
 username = __token__
-password = pypi-YOUR-API-TOKEN-HERE
+password = pypi-YOUR-API-TOKEN
 
 [testpypi]
 username = __token__
-password = pypi-YOUR-TEST-API-TOKEN-HERE
+password = pypi-YOUR-TEST-API-TOKEN
 ```
 
-**Security Note**: Use API tokens instead of passwords. Never commit `.pypirc` to version control!
+**Security Note**: Never commit `.pypirc` to version control!
 
-## Version Management
+### Package Already Exists
 
-Update version in both files when releasing:
-- `setup.py`: `version="1.0.0"`
-- `pyproject.toml`: `version = "1.0.0"`
-- `fortigate_cert_decoder/__init__.py`: `__version__ = "1.0.0"`
+If the version already exists on PyPI:
+1. Update the version number in all files
+2. Rebuild: `rm -rf dist/ && python -m build`
+3. Upload again
 
-## Before Publishing Checklist
+### Trusted Publishing Setup Issues
 
-- [ ] Update version number in all files
-- [ ] Update README.md with any new features
-- [ ] Update author name and email in setup.py and pyproject.toml
-- [ ] Update GitHub URLs in setup.py and pyproject.toml
-- [ ] Test locally: `pip install -e .`
-- [ ] Build package: `python -m build`
-- [ ] Check package: `twine check dist/*`
-- [ ] Test on Test PyPI first
-- [ ] Add git tag for version: `git tag v1.0.0`
+If GitHub Actions fails to publish:
+1. Verify PyPI trusted publisher settings match exactly
+2. Ensure the GitHub environment name is `pypi`
+3. Check that the workflow file is named `python-publish.yml`
+4. Review workflow logs for specific errors
 
-## Updating the Package
-
-When releasing a new version:
-
-1. Make your changes
-2. Update version numbers
-3. Clean old builds:
-   ```bash
-   rm -rf dist/ build/ *.egg-info
-   ```
-4. Build new distribution:
-   ```bash
-   python -m build
-   ```
-5. Upload to PyPI:
-   ```bash
-   twine upload dist/*
-   ```
-
-## Package Metadata
-
-You should customize these fields in `setup.py` and `pyproject.toml`:
-
-- `author`: Your name
-- `author_email`: Your email
-- `url`: GitHub repository URL
-- `project_urls`: Bug tracker and source URLs
-
-## Dependencies
-
-The package will automatically install these dependencies:
-- `requests>=2.28.0`
-- `cryptography>=41.0.0`
-- `rich>=13.0.0`
-- `urllib3>=1.26.0`
-
-## License
-
-The package uses MIT License. Update the LICENSE file with your name and year.
-
-## Troubleshooting
-
-### Import Errors
-
-If you get import errors after installation:
-```bash
-pip uninstall fortigate-cert-decoder
-pip cache purge
-pip install fortigate-cert-decoder
-```
-
-### Build Errors
-
-Clean build artifacts:
-```bash
-rm -rf build/ dist/ *.egg-info fortigate_cert_decoder.egg-info
-```
-
-### Command Not Found
-
-Ensure pip's bin directory is in your PATH:
-```bash
-export PATH="$HOME/.local/bin:$PATH"
-```
-
-Or use:
-```bash
-python -m fortigate_cert_decoder.cert_decode --help
-```
-
-## Quick Start Commands
+## Quick Reference Commands
 
 ```bash
-# Navigate to package directory
-cd /home/albist50/Code/fortigate-cert-decoder
+# Clean old builds
+rm -rf build/ dist/ *.egg-info
 
 # Install build tools
 pip install build twine
 
-# Build the package
+# Build package
 python -m build
 
-# Check the package
+# Check package
 twine check dist/*
 
 # Upload to Test PyPI
 twine upload --repository testpypi dist/*
 
-# Test installation
-pip install --index-url https://test.pypi.org/simple/ fortigate-cert-decoder
-
-# If all looks good, upload to production PyPI
+# Upload to Production PyPI
 twine upload dist/*
+
+# Test installation
+pip install fortigate-cert-decoder
+
+# Test CLI
+fgt-cert-decode --help
 ```
 
-## Example Usage After Installation
+## Resources
 
-```python
-# Can also be used as a Python module
-from fortigate_cert_decoder import decode_certificate
+- [PyPI Packaging Guide](https://packaging.python.org/tutorials/packaging-projects/)
+- [Trusted Publishing](https://docs.pypi.org/trusted-publishers/)
+- [GitHub Actions for Python](https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python)
+- [Semantic Versioning](https://semver.org/)
 
-decode_certificate(
-    host="192.168.1.1",
-    cert_name="MyCert",
-    username="jsonadmin",
-    password="mypass",
-    cert_type="ca"
-)
-```
+## Support
 
----
-
-**Remember**: Always test on Test PyPI before publishing to production PyPI!
+For issues with:
+- **This package**: Open an issue at https://github.com/talbiston/fortigate-cert-decoder/issues
+- **PyPI**: Check https://status.python.org/ or PyPI help documentation
+- **GitHub Actions**: Review workflow logs in the Actions tab
