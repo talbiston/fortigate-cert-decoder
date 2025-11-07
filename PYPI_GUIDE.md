@@ -50,7 +50,7 @@ For local development and testing:
 ### 1. Install in Editable Mode
 
 ```bash
-cd /home/albist50/Code/fortigate-cert-decoder
+cd fortigate-cert-decoder
 pip install -e .
 ```
 
@@ -73,7 +73,7 @@ pip install build twine
 ### 2. Build Distribution Files
 
 ```bash
-cd /home/albist50/Code/fortigate-cert-decoder
+cd fortigate-cert-decoder
 python -m build
 ```
 
@@ -107,6 +107,8 @@ pip install --index-url https://test.pypi.org/simple/ fortigate-cert-decoder
 
 ### Production PyPI
 
+#### Manual Upload (Using Twine)
+
 1. Create account at https://pypi.org/account/register/
 
 2. Create API token at https://pypi.org/manage/account/token/
@@ -115,6 +117,40 @@ pip install --index-url https://test.pypi.org/simple/ fortigate-cert-decoder
 ```bash
 twine upload dist/*
 ```
+
+#### Automated Upload (Using GitHub Actions)
+
+The repository includes a GitHub Actions workflow that automatically publishes to PyPI when you create a GitHub Release.
+
+**Prerequisites:**
+1. Create a PyPI account at https://pypi.org/account/register/
+2. Configure PyPI Trusted Publishing:
+   - Go to https://pypi.org/manage/account/publishing/
+   - Add a new pending publisher with:
+     - PyPI Project Name: `fortigate-cert-decoder`
+     - Owner: `talbiston`
+     - Repository: `fortigate-cert-decoder`
+     - Workflow name: `python-publish.yml`
+     - Environment name: `pypi`
+
+**To publish a new version:**
+1. Update version numbers in:
+   - `setup.py`
+   - `pyproject.toml`
+   - `fortigate_cert_decoder/__init__.py`
+2. Commit and push your changes
+3. Create a new release on GitHub:
+   - Go to https://github.com/talbiston/fortigate-cert-decoder/releases/new
+   - Create a new tag (e.g., `v1.0.0`)
+   - Set the release title (e.g., `Release 1.0.0`)
+   - Add release notes
+   - Click "Publish release"
+4. The GitHub Actions workflow will automatically:
+   - Build the package
+   - Publish to PyPI
+   - Update the deployment status
+
+**Note:** The first time you publish, you need to manually create the project on PyPI or configure Trusted Publishing as described above.
 
 ## Configuration
 
@@ -232,7 +268,7 @@ python -m fortigate_cert_decoder.cert_decode --help
 
 ```bash
 # Navigate to package directory
-cd /home/albist50/Code/fortigate-cert-decoder
+cd fortigate-cert-decoder
 
 # Install build tools
 pip install build twine

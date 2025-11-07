@@ -11,7 +11,7 @@ setup(
     description="A CLI tool for retrieving and decoding certificates from FortiGate devices",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/fortigate-cert-decoder",
+    url="https://github.com/talbiston/fortigate-cert-decoder",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 4 - Beta",
@@ -41,7 +41,7 @@ setup(
     },
     keywords="fortigate certificate ssl tls decoder x509 firewall",
     project_urls={
-        "Bug Reports": "https://github.com/yourusername/fortigate-cert-decoder/issues",
-        "Source": "https://github.com/yourusername/fortigate-cert-decoder",
+        "Bug Reports": "https://github.com/talbiston/fortigate-cert-decoder/issues",
+        "Source": "https://github.com/talbiston/fortigate-cert-decoder",
     },
 )
