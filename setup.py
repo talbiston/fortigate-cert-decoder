@@ -18,7 +18,6 @@ setup(
         "Intended Audience :: System Administrators",
         "Topic :: System :: Networking :: Firewalls",
         "Topic :: Security",
-        "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
