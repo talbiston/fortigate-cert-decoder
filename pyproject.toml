@@ -34,9 +34,9 @@ dependencies = [
 keywords = ["fortigate", "certificate", "ssl", "tls", "decoder", "x509", "firewall"]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/fortigate-cert-decoder"
-"Bug Reports" = "https://github.com/yourusername/fortigate-cert-decoder/issues"
-Source = "https://github.com/yourusername/fortigate-cert-decoder"
+Homepage = "https://github.com/talbiston/fortigate-cert-decoder"
+"Bug Reports" = "https://github.com/talbiston/fortigate-cert-decoder/issues"
+Source = "https://github.com/talbiston/fortigate-cert-decoder"
 
 [project.scripts]
 fgt-cert-decode = "fortigate_cert_decoder.cert_decode:main"
