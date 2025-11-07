@@ -68,7 +68,7 @@ pip install fortigate-cert-decoder
 ### Basic Syntax
 
 ```bash
-python cert_decode.py <host> <cert_name> -p <password> [OPTIONS]
+python fgt-cert-decode <host> <cert_name> -p <password> [OPTIONS]
 ```
 
 ### Required Arguments
@@ -91,7 +91,7 @@ python cert_decode.py <host> <cert_name> -p <password> [OPTIONS]
 #### Example 1: Retrieve a CA Certificate (Default)
 
 ```bash
-python cert_decode.py 213.200.98.165 Fortinet_SUBCA -p "myPassword123"
+python fgt-cert-decode 213.200.98.165 Fortinet_SUBCA -p "myPassword123"
 ```
 
 This will:
@@ -103,7 +103,7 @@ This will:
 #### Example 2: Retrieve a CA Certificate with Custom Username
 
 ```bash
-python cert_decode.py 192.168.1.99 RootCA -u admin -p "SecurePass!23"
+python fgt-cert-decode 192.168.1.99 RootCA -u admin -p "SecurePass!23"
 ```
 
 This will:
@@ -114,7 +114,7 @@ This will:
 #### Example 3: Retrieve a Local Certificate
 
 ```bash
-python cert_decode.py 10.0.0.1 WebServerCert -t local -p "myPassword"
+python fgt-cert-decode 10.0.0.1 WebServerCert -t local -p "myPassword"
 ```
 
 This will:
@@ -126,7 +126,7 @@ This will:
 #### Example 4: Using Hostname Instead of IP
 
 ```bash
-python cert_decode.py firewall.company.com SSLInspectionCA -p "pass123" -t ca
+python fgt-cert-decode firewall.company.com SSLInspectionCA -p "pass123" -t ca
 ```
 
 This will:
@@ -293,7 +293,7 @@ HOST=${1:-192.168.1.1}
 CERT=${2:-Fortinet_CA2}
 read -sp "Password: " PASSWORD
 echo
-python cert_decode.py "$HOST" "$CERT" -p "$PASSWORD"
+python fgt-cert-decode "$HOST" "$CERT" -p "$PASSWORD"
 ```
 
 Usage:
@@ -312,7 +312,7 @@ PASSWORD="myPassword"
 
 for CERT in Fortinet_CA Fortinet_SUBCA CustomCA; do
     echo "Checking $CERT..."
-    python cert_decode.py "$HOST" "$CERT" -p "$PASSWORD" -t ca
+    python fgt-cert-decode "$HOST" "$CERT" -p "$PASSWORD" -t ca
     echo "---"
 done
 ```
