@@ -1,6 +1,6 @@
 """FortiGate Certificate Decoder - A tool for retrieving and decoding certificates from FortiGate devices."""
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 __author__ = "Todd Albiston"
 __email__ = "foxtrot711@gmail.com"
 

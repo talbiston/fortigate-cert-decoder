@@ -1,14 +1,21 @@
 import requests
 import json
 import argparse
-from rich import print
+import warnings
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
+from cryptography.utils import CryptographyDeprecationWarning
 from datetime import datetime, timezone
 import urllib3
 
-# Disable SSL warnings
+# Disable all warnings for cleaner output
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+warnings.filterwarnings('ignore', category=CryptographyDeprecationWarning)
+
+console = Console()
 
 def decode_certificate(host, cert_name, username, password, cert_type):
     """Decode a certificate from a FortiGate device."""
@@ -36,10 +43,10 @@ def decode_certificate(host, cert_name, username, password, cert_type):
     session_id = response.json().get('session', None)
 
     if session_id is None:
-        print("[red]Login failed. Please check credentials.[/red]")
+        console.print("[red]✗ Login failed. Please check credentials.[/red]")
         return
 
-    print(f"[green]✓ Logged in successfully[/green]")
+    console.print(f"[green]✓ Logged in successfully to {host}[/green]\n")
 
     # Get certificate based on type
     get_cert_payload = {
@@ -57,7 +64,7 @@ def decode_certificate(host, cert_name, username, password, cert_type):
     cert_data = cert_response.json()
 
     if "result" not in cert_data or not cert_data["result"]:
-        print(f"[red]Certificate '{cert_name}' not found.[/red]")
+        console.print(f"[red]✗ Certificate '{cert_name}' not found.[/red]")
         return
 
     # Extract cert_pem based on cert_type
@@ -69,35 +76,92 @@ def decode_certificate(host, cert_name, username, password, cert_type):
     # Decode the certificate
     cert = x509.load_pem_x509_certificate(cert_pem.encode(), default_backend())
 
-    print(f"\n[bold cyan]Certificate Details ({cert_type.upper()}):[/bold cyan]")
-    print(f"[yellow]Subject:[/yellow] {cert.subject.rfc4514_string()}")
-    print(f"[yellow]Issuer:[/yellow] {cert.issuer.rfc4514_string()}")
-    print(f"[yellow]Serial Number:[/yellow] {cert.serial_number}")
-    print(f"[yellow]Not Valid Before:[/yellow] {cert.not_valid_before_utc}")
-    print(f"[yellow]Not Valid After:[/yellow] {cert.not_valid_after_utc}")
-    print(f"[yellow]Signature Algorithm:[/yellow] {cert.signature_algorithm_oid._name}")
-
     # Check if certificate is still valid
     now = datetime.now(timezone.utc)
-    if cert.not_valid_before_utc <= now <= cert.not_valid_after_utc:
-        print(f"[green]Status: Valid ✓[/green]")
-    else:
-        print(f"[red]Status: Expired or Not Yet Valid ✗[/red]")
+    
+    # Handle both old and new cryptography library attribute names
+    try:
+        not_before = cert.not_valid_before_utc
+        not_after = cert.not_valid_after_utc
+    except AttributeError:
+        # Older versions use not_valid_before/not_valid_after without _utc suffix
+        not_before = cert.not_valid_before.replace(tzinfo=timezone.utc) if cert.not_valid_before.tzinfo is None else cert.not_valid_before
+        not_after = cert.not_valid_after.replace(tzinfo=timezone.utc) if cert.not_valid_after.tzinfo is None else cert.not_valid_after
+    
+    is_valid = not_before <= now <= not_after
+    status = "[green]✓ Valid[/green]" if is_valid else "[red]✗ Expired/Not Yet Valid[/red]"
 
-    print(f"\n[yellow]Subject Alternative Names:[/yellow]")
+    # Parse subject and issuer into readable format
+    subject_parts = []
+    for attr in cert.subject:
+        subject_parts.append(f"{attr.oid._name}: {attr.value}")
+    
+    issuer_parts = []
+    for attr in cert.issuer:
+        issuer_parts.append(f"{attr.oid._name}: {attr.value}")
+
+    # Create main info table
+    table = Table(show_header=False, box=None, padding=(0, 2))
+    table.add_column("Field", style="cyan bold", width=20)
+    table.add_column("Value", style="white")
+    
+    table.add_row("Certificate Type", cert_type.upper())
+    table.add_row("Certificate Name", cert_name)
+    table.add_row("Status", status)
+    table.add_row("Serial Number", str(cert.serial_number))
+    table.add_row("Valid From", not_before.strftime("%Y-%m-%d %H:%M:%S UTC"))
+    table.add_row("Valid Until", not_after.strftime("%Y-%m-%d %H:%M:%S UTC"))
+    table.add_row("Signature Algorithm", cert.signature_algorithm_oid._name)
+
+    # Get SANs
+    san_list = []
     try:
         san = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
-        for name in san.value:
-            print(f"  - {name}")
+        san_list = [str(name) for name in san.value]
     except x509.ExtensionNotFound:
-        print("  None")
+        san_list = ["None"]
 
-    print(f"\n[yellow]Key Usage:[/yellow]")
+    # Get Key Usage
+    key_usage_list = []
     try:
         key_usage = cert.extensions.get_extension_for_class(x509.KeyUsage)
-        print(f"  {key_usage.value}")
+        if key_usage.value.digital_signature:
+            key_usage_list.append("Digital Signature")
+        if key_usage.value.key_encipherment:
+            key_usage_list.append("Key Encipherment")
+        if key_usage.value.key_cert_sign:
+            key_usage_list.append("Certificate Signing")
+        if key_usage.value.crl_sign:
+            key_usage_list.append("CRL Signing")
+        if key_usage.value.key_agreement:
+            key_usage_list.append("Key Agreement")
     except x509.ExtensionNotFound:
-        print("  None")
+        key_usage_list = ["None"]
+
+    # Print certificate details in a panel
+    console.print(Panel(table, title=f"[bold white]Certificate Details[/bold white]", border_style="cyan"))
+    
+    # Subject details
+    console.print("\n[bold cyan]Subject:[/bold cyan]")
+    for part in subject_parts:
+        console.print(f"  • {part}")
+    
+    # Issuer details
+    console.print("\n[bold cyan]Issuer:[/bold cyan]")
+    for part in issuer_parts:
+        console.print(f"  • {part}")
+    
+    # SANs
+    console.print("\n[bold cyan]Subject Alternative Names:[/bold cyan]")
+    for san_item in san_list:
+        console.print(f"  • {san_item}")
+    
+    # Key Usage
+    console.print("\n[bold cyan]Key Usage:[/bold cyan]")
+    for usage in key_usage_list:
+        console.print(f"  • {usage}")
+    
+    console.print()  # Empty line at end
 
 
 def main():

@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="fortigate-cert-decoder",
-    version="1.0.0",
+    version="1.0.1",
     author="Todd Albiston",
     author_email="foxtrot711@gmail.com",
     description="A CLI tool for retrieving and decoding certificates from FortiGate devices",
